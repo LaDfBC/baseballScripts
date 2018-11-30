@@ -1,12 +1,13 @@
 import pandas as pd
+from src.displayers import standardOutWriter
 
-numbers = [0, 1000]
+numbers = [1, 1001]
 
 def groupByRange(data, range=100):
     ranges = []
     i = numbers[0]
 
-    while i < numbers[1]:
+    while i <= numbers[1]:
         ranges.append(i)
         i = i + range
 
@@ -20,4 +21,4 @@ def groupByRange(data, range=100):
 
 data = [1, 101, 201, 103, 600]
 
-print(groupByRange(data))
+standardOutWriter.writeToStandardOut(groupByRange(data, 50))
