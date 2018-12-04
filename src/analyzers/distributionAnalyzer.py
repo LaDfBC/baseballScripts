@@ -15,7 +15,7 @@ def groupByRange(data, range=100):
 
     df = pd.DataFrame({'data': data})
 
-    # Does the actual thing - cuts the data into pieces and then grousp it
+    # Does the actual thing - cuts the data into pieces and then groups it
     cuts = pd.cut(df['data'], ranges)
     df2 = df.groupby(cuts)['data'].agg(['count'])
 
@@ -23,5 +23,9 @@ def groupByRange(data, range=100):
     return df2
 
 data = [1, 101, 201, 103, 600]
+
+# TODO - Write Delta Function
+def order_and_group_by_delta(data):
+    return None
 
 standardOutWriter.writeToStandardOut(groupByRange(data, 50))

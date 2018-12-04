@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="86b698b0-c13c-4b52-b044-b40b5b0cb5fd" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/analyzers/distributionAnalyzer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/analyzers/distributionAnalyzer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scoutRunner.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/scoutRunner.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scraper/pitchScraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/scraper/pitchScraper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/security/redditOauth2Client.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/security/redditClient.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -24,8 +21,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/analyzers/distributionAnalyzer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="405">
-              <caret line="27" selection-start-line="27" selection-end-line="27" />
+            <state relative-caret-position="243">
+              <caret line="26" column="29" selection-start-line="26" selection-start-column="29" selection-end-line="26" selection-end-column="29" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
               </folding>
@@ -36,8 +33,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/scraper/pitchScraper.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5">
-              <caret line="56" column="33" lean-forward="true" selection-start-line="56" selection-start-column="33" selection-end-line="56" selection-end-column="33" />
+            <state relative-caret-position="15">
+              <caret line="23" column="83" lean-forward="true" selection-start-line="23" selection-start-column="83" selection-end-line="23" selection-end-column="83" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -95,10 +92,10 @@
       <list>
         <option value="$PROJECT_DIR$/src/reader/csvReader.py" />
         <option value="$PROJECT_DIR$/src/displayers/standardOutWriter.py" />
-        <option value="$PROJECT_DIR$/src/analyzers/distributionAnalyzer.py" />
         <option value="$PROJECT_DIR$/src/security/redditOauth2Client.py" />
         <option value="$PROJECT_DIR$/src/security/redditClient.py" />
         <option value="$PROJECT_DIR$/src/scoutRunner.py" />
+        <option value="$PROJECT_DIR$/src/analyzers/distributionAnalyzer.py" />
         <option value="$PROJECT_DIR$/src/scraper/pitchScraper.py" />
       </list>
     </option>
@@ -301,7 +298,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.32841823" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.54423594" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.424933" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -330,18 +327,28 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/scraper/pitchScraper.py</url>
-          <line>49</line>
+          <line>70</line>
           <option name="timeStamp" value="17" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/scraper/pitchScraper.py</url>
-          <line>54</line>
-          <option name="timeStamp" value="18" />
+          <line>37</line>
+          <option name="timeStamp" value="31" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/scraper/pitchScraper.py</url>
-          <line>63</line>
-          <option name="timeStamp" value="19" />
+          <line>38</line>
+          <option name="timeStamp" value="34" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/scraper/pitchScraper.py</url>
+          <line>51</line>
+          <option name="timeStamp" value="36" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/scraper/pitchScraper.py</url>
+          <line>31</line>
+          <option name="timeStamp" value="37" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -356,47 +363,52 @@
   <component name="debuggerHistoryManager">
     <expressions id="evaluateExpression">
       <expression>
-        <expression-string>post.selftext_html</expression-string>
+        <expression-string>comment.body</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>post.selftext</expression-string>
+        <expression-string>comment</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>pitch_reply[pitch_index + 6:end_of_pitch_line_index]</expression-string>
+        <expression-string>comment.selftext</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>pitch_reply[pitch_index:end_of_pitch_line_index]</expression-string>
+        <expression-string>comment.text</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>pitch_reply[pitch_index, end_of_pitch_line_index].strip()</expression-string>
+        <expression-string>get_player_from_comment(comment)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>int(pitch_reply[pitch_index, end_of_pitch_line_index].strip())</expression-string>
+        <expression-string>text[pitcher_open_index + 1 : pitcher_close_index]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>comment.replies</expression-string>
+        <expression-string>text[hashtag_index + 5: ending_star_index]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>post.link_flair_text</expression-string>
+        <expression-string>text</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>post.comments[0].created</expression-string>
+        <expression-string>text.find(&quot;BOX&quot;)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>text.find(&quot;Box&quot;)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -411,16 +423,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="165">
           <caret line="11" selection-start-line="11" selection-end-line="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/analyzers/distributionAnalyzer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="27" selection-start-line="27" selection-end-line="27" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -444,10 +446,27 @@
         </state>
       </provider>
     </entry>
+    <entry file="file:///usr/local/lib/python3.6/dist-packages/lxml/html/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="103">
+          <caret line="928" column="4" selection-start-line="928" selection-start-column="4" selection-end-line="928" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/analyzers/distributionAnalyzer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="243">
+          <caret line="26" column="29" selection-start-line="26" selection-start-column="29" selection-end-line="26" selection-end-column="29" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/scraper/pitchScraper.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5">
-          <caret line="56" column="33" lean-forward="true" selection-start-line="56" selection-start-column="33" selection-end-line="56" selection-end-column="33" />
+        <state relative-caret-position="15">
+          <caret line="23" column="83" lean-forward="true" selection-start-line="23" selection-start-column="83" selection-end-line="23" selection-end-column="83" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
