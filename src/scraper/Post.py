@@ -54,10 +54,14 @@ class Post:
             batter_close_index = text.find("]", batter_open_index)
             batter_name = text[batter_open_index + 1: batter_close_index]
 
+            username_open_index = text.find("(", batter_close_index)
+            username_close_index = text.find(")", username_open_index)
+            username = text[username_open_index + 1 : username_close_index]
+
             if first_team:
-                players[self.teams[0]].append(batter_name)
+                players[self.teams[0]].append([batter_name, username])
             else:
-                players[self.teams[1]].append(batter_name)
+                players[self.teams[1]].append([batter_name, username])
             first_team = not first_team
 
             batters_index = batter_close_index
@@ -81,11 +85,10 @@ class Post:
 
             # Start pulling pitches and adding them to the list
             for comment in self.post.comments:
-
-                #TODO: This needs to be a function
-                player_mentioned = self.__get_player_from_comment__(comment)
-                player_mentioned = player_mentioned.split(" ")[-2:]
-                player_mentioned = player_mentioned[0] + " " + player_mentioned[1]
+                # Figure out which player is batting
+                player_mentioned = self.__get_full_batter_name_from_toplevel_post(
+                    self.__get_player_from_comment__(comment),
+                    position_players)
 
                 # Player is a pitcher - this is a pitching change.  Just swap out the team pitcher
                 if player_mentioned in pitchers[self.teams[0]] or player_mentioned in pitchers[self.teams[1]]:
@@ -103,8 +106,10 @@ class Post:
                             if len(first_reply.replies) > 0:
                                 if player_mentioned in position_players[self.teams[0]]:
                                     team_two_batting = False
-                                else:
+                                elif player_mentioned in position_players[self.teams[1]]:
                                     team_two_batting = True
+                                else:
+                                    continue
                                 # Likely a swing reply - try to find the pitch
                                 reply = first_reply.replies[0]
                                 pitch_reply = reply.body  # Where the pitch is displayed
@@ -157,3 +162,23 @@ class Post:
         if index == -1:
             index = comment_text.find("pitch:")
         return index
+
+    '''
+    My god we need a more precise way to list who's batting.  Anyway, this does its best to figure out which person is
+    batting.
+    
+    The proper way to do this is via Reddit Username.  Make this work - it's the correct way to figure this out since
+    the links are alays the same.
+    '''
+    def __get_full_batter_name_from_toplevel_post(self, input_name, position_players):
+        # TODO: This needs to be a function
+        player_mentioned = input_name.split(" ")[-2:]
+        if len(player_mentioned) == 1:
+            player_mentioned = player_mentioned[0]
+        else:
+            player_mentioned = player_mentioned[0] + " " + player_mentioned[1]
+
+        #
+
+        return player_mentioned
+
