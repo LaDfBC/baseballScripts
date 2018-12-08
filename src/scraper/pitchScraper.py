@@ -11,9 +11,12 @@ def sync_all_posts(reddit):
             continue
 
         current_post = Post(post)
+        # try:
         pitches = current_post.get_pitches()
-
         print(pitches)
+        # except:
+        #     print("Failed to parse post: " + post.title)
+
 
 
 def sync_posts_since(time):

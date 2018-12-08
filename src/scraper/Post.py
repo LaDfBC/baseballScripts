@@ -25,18 +25,18 @@ class Post:
         starting_two = True
         # This tears apart the table storing pitchers and scrapes their names out
         while text.find("[", pitchers_index) != -1:
-            triple_pipe_check = text.find("|||")
+            triple_pipe_check = text.find("|||", pitchers_index)
 
             pitcher_open_index = text.find("[", pitchers_index)
             pitcher_close_index = text.find("]", pitcher_open_index)
             pitcher_name = text[pitcher_open_index + 1: pitcher_close_index]
 
-            if triple_pipe_check < pitcher_open_index:
+            if triple_pipe_check != -1 and triple_pipe_check < pitcher_open_index:
                 first_team = not first_team
 
             username_open_index = text.find("(", pitcher_close_index)
             username_close_index = text.find(")", username_open_index)
-            username = text[username_open_index + 1: username_close_index]
+            username = text[username_open_index + 1: username_close_index].lower().replace(" ", "")
 
             # This is the part that needs changing from the to do above,
             #   it just swaps the teams right now, leading to bad correlation
@@ -69,18 +69,18 @@ class Post:
         first_team = True
         # Scrapes the table of players to get each of them and assign them to a team
         while text.find("[", batters_index) != -1:
-            # This is watching for replaced team members. Otherwise, we reverse team members
-            triple_pipe_check = text.find("|||")
+            # This is watching for replaced team members. Otherwise, we have issues with parsing
+            triple_pipe_check = text.find("|||", batters_index)
             batter_open_index = text.find("[", batters_index)
             batter_close_index = text.find("]", batter_open_index)
             batter_name = text[batter_open_index + 1: batter_close_index]
 
-            if triple_pipe_check < batter_open_index:
+            if triple_pipe_check != -1 and triple_pipe_check < batter_open_index:
                 first_team = not first_team
 
             username_open_index = text.find("(", batter_close_index)
             username_close_index = text.find(")", username_open_index)
-            username = text[username_open_index + 1: username_close_index]
+            username = text[username_open_index + 1: username_close_index].lower().replace(" ", "")
 
             if first_team:
                 players[self.team_name_one][username] = batter_name
@@ -121,10 +121,22 @@ class Post:
                         team_two_pitcher = player_mentioned
                 # Player is a position player.  This is a swing.  Do the magic.
                 elif player_mentioned is not None:
-                    # TODO: Check for player replacements - If the second one also has a name, re-apply logic
+                    if player_mentioned not in team_two_batter_usernames and \
+                        player_mentioned not in team_one_batter_usernames:
+                        raise Exception("What the fuck is happening?")
                     if len(comment.replies) > 0:
                         for first_reply in comment.replies:
                             if len(first_reply.replies) > 0:
+                                # Check to see if this is a player replacement
+                                possible_replacement = self.__get_player_from_comment__(first_reply)
+                                if possible_replacement is not None:
+                                    if possible_replacement in team_one_batter_usernames \
+                                            or possible_replacement in team_two_batter_usernames:
+                                        # Ok, it is.  Let's swap them out and dig down the rabbit hole of replies
+                                        player_mentioned = possible_replacement
+                                        if len(first_reply.replies) > 0:
+                                            first_reply = first_reply.replies[0]
+
                                 if player_mentioned in team_one_batter_usernames:
                                     team_two_batting = False
                                 elif player_mentioned in team_two_batter_usernames:
@@ -164,31 +176,46 @@ class Post:
         teams = {}
 
         smallest_index = 100000
+        all_indexes = []
         for abbreviation in TeamUtil.get_team_abbreviation_list():
             index = text.find(abbreviation)
             if index != -1:
                 teams[abbreviation] = index
+                all_indexes.append(index)
                 if index < smallest_index:
                     smallest_index = index
 
-        if len(teams) != 2:
-            raise ValueError(text, teams)
-        else:
+        #This is bad - I originally threw an error, but realized I could just knock it down
+        if len(teams) > 2:
+            teams_to_pop = []
+            all_indexes = sorted(all_indexes)
             for team in teams:
-                if teams[team] == smallest_index:
-                    self.team_name_one = team
-                else:
-                    self.team_name_two = team
+                if not teams[team] == all_indexes[0] and not teams[team] == all_indexes[1]:
+                    teams_to_pop.append(team)
+
+            for team_to_pop in teams_to_pop:
+                teams.pop(team_to_pop)
+        elif len(teams) < 2:
+            raise ValueError("Couldn't find enough teams!")
+
+        for team in teams:
+            if teams[team] == smallest_index:
+                self.team_name_one = team
+            else:
+                self.team_name_two = team
 
     @staticmethod
     def __get_player_from_comment__(comment):
-        comment_text = comment.body
+        comment_text = comment.body.replace(" ", "")
         player_open_index = comment_text.find("[")
         player_close_index = comment_text.find("]", player_open_index)
 
-        username_open_index = comment_text.find("(", player_close_index)
+        if player_open_index == -1:
+            return None
+
+        username_open_index = comment_text.find("(/u", player_close_index)
         username_close_index = comment_text.find(")", username_open_index)
-        return comment_text[username_open_index + 1: username_close_index]
+        return comment_text[username_open_index + 1: username_close_index].lower()
 
     # Finds the index of the line containing the pitch number
     @staticmethod
