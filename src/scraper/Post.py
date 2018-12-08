@@ -1,46 +1,65 @@
+from src.scraper import TeamUtil
+
+
 class Post:
     def __init__(self, post):
         self.post = post
-        self.teams = self.__fetch_teams__()
+        self.__assign_teams__()  # Assigns variables self.team_name_one and self.team_name_two
+        self.users_to_pitchers, self.starting_pitchers = self.fetch_pitchers()
+        self.users_to_position_players = self.__fetch_position_players__()
 
     def fetch_pitchers(self):
         text = self.post.selftext
 
         # Set up the dictionary we're going to return with empty strings for the pitchers and teams
-        pitchers = {}
-        pitchers[self.teams[0]] = []
-        pitchers[self.teams[1]] = []
+        pitchers = {self.team_name_one: {}, self.team_name_two: {}}
+        starting_pitchers = []
 
         og_pitch_index = text.find("PITCHERS")
         if og_pitch_index == -1:
             og_pitch_index = text.find("Pitchers")
 
         pitchers_index = og_pitch_index + 8
-        # TODO: Handle case where there are an uneven number of pitchers - this currently just swaps back and forth looking for pitchers
         first_team = True
+        starting_one = True
+        starting_two = True
         # This tears apart the table storing pitchers and scrapes their names out
         while text.find("[", pitchers_index) != -1:
+            triple_pipe_check = text.find("|||")
+
             pitcher_open_index = text.find("[", pitchers_index)
             pitcher_close_index = text.find("]", pitcher_open_index)
             pitcher_name = text[pitcher_open_index + 1: pitcher_close_index]
 
-            # This is the part that needs changing from the to do above, it just swaps the teams right now, leading to bad correlation
+            if triple_pipe_check < pitcher_open_index:
+                first_team = not first_team
+
+            username_open_index = text.find("(", pitcher_close_index)
+            username_close_index = text.find(")", username_open_index)
+            username = text[username_open_index + 1: username_close_index]
+
+            # This is the part that needs changing from the to do above,
+            #   it just swaps the teams right now, leading to bad correlation
             if first_team:
-                pitchers[self.teams[0]].append(pitcher_name)
+                if starting_one:
+                    starting_pitchers.append(username)
+                    starting_one = False
+                pitchers[self.team_name_one][username] = pitcher_name
             else:
-                pitchers[self.teams[1]].append(pitcher_name)
+                if starting_two:
+                    starting_pitchers.append(username)
+                    starting_two = False
+                pitchers[self.team_name_two][username] = pitcher_name
             first_team = not first_team
 
             pitchers_index = pitcher_close_index
 
-        return pitchers
+        return pitchers, starting_pitchers
 
-    def fetch_position_players(self,):
+    def __fetch_position_players__(self):
         text = self.post.selftext
 
-        players = {}
-        players[self.teams[0]] = []
-        players[self.teams[1]] = []
+        players = {self.team_name_one: {}, self.team_name_two: {}}
 
         box_index = text.find("BOX")
         if box_index == -1:
@@ -50,18 +69,23 @@ class Post:
         first_team = True
         # Scrapes the table of players to get each of them and assign them to a team
         while text.find("[", batters_index) != -1:
+            # This is watching for replaced team members. Otherwise, we reverse team members
+            triple_pipe_check = text.find("|||")
             batter_open_index = text.find("[", batters_index)
             batter_close_index = text.find("]", batter_open_index)
             batter_name = text[batter_open_index + 1: batter_close_index]
 
+            if triple_pipe_check < batter_open_index:
+                first_team = not first_team
+
             username_open_index = text.find("(", batter_close_index)
             username_close_index = text.find(")", username_open_index)
-            username = text[username_open_index + 1 : username_close_index]
+            username = text[username_open_index + 1: username_close_index]
 
             if first_team:
-                players[self.teams[0]].append([batter_name, username])
+                players[self.team_name_one][username] = batter_name
             else:
-                players[self.teams[1]].append([batter_name, username])
+                players[self.team_name_two][username] = batter_name
             first_team = not first_team
 
             batters_index = batter_close_index
@@ -70,43 +94,40 @@ class Post:
 
     # Hoo boy, this is the nasty function
     def get_pitches(self):
-        if self.post.link_flair_text == 'Exhibition Game' or self.post.link_flair_text[-8:] == 'Game Day' or self.post.link_flair_text == 'Winter Training':
+        if self.post.link_flair_text == 'Exhibition Game' or \
+                self.post.link_flair_text[-8:] == 'Game Day' or \
+                self.post.link_flair_text == 'Winter Training':
             # We're returning this sucker.  It has every pitch in the game (hopefully!)
             pitches = []
 
-            # This is a game thread - we can start trying to pull pitches!
-            pitchers = self.fetch_pitchers()  # TODO: Can pass in teams to avoid duplicate calls
-            position_players = self.fetch_position_players()
+            team_one_pitcher = self.starting_pitchers[0]
+            team_two_pitcher = self.starting_pitchers[1]
 
-            team_one_pitcher_index = 0
-            team_two_pitcher_index = 0
-            team_one_pitcher = pitchers[self.teams[0]][team_one_pitcher_index]
-            team_two_pitcher = pitchers[self.teams[1]][team_two_pitcher_index]
+            team_one_pitcher_usernames = self.users_to_pitchers[self.team_name_one].keys()
+            team_two_pitcher_usernames = self.users_to_pitchers[self.team_name_two].keys()
+            team_one_batter_usernames = self.users_to_position_players[self.team_name_one].keys()
+            team_two_batter_usernames = self.users_to_position_players[self.team_name_two].keys()
 
             # Start pulling pitches and adding them to the list
             for comment in self.post.comments:
                 # Figure out which player is batting
-                player_mentioned = self.__get_full_batter_name_from_toplevel_post(
-                    self.__get_player_from_comment__(comment),
-                    position_players)
+                player_mentioned = self.__get_player_from_comment__(comment)
 
                 # Player is a pitcher - this is a pitching change.  Just swap out the team pitcher
-                if player_mentioned in pitchers[self.teams[0]] or player_mentioned in pitchers[self.teams[1]]:
-                    # TODO: Check and report an error if the list of pitchers is too short
-                    if player_mentioned in pitchers[self.teams[0]]:
-                        team_one_pitcher_index = team_one_pitcher_index + 1
-                        team_one_pitcher = pitchers[self.teams[0]][team_one_pitcher_index]
+                if player_mentioned in team_one_pitcher_usernames or player_mentioned in team_two_pitcher_usernames:
+                    if player_mentioned in team_one_pitcher_usernames:
+                        team_one_pitcher = player_mentioned
                     else:
-                        team_two_pitcher_index = team_two_pitcher_index + 1
-                        team_two_pitcher = pitchers[self.teams[1]][team_two_pitcher_index]
+                        team_two_pitcher = player_mentioned
                 # Player is a position player.  This is a swing.  Do the magic.
                 elif player_mentioned is not None:
+                    # TODO: Check for player replacements - If the second one also has a name, re-apply logic
                     if len(comment.replies) > 0:
                         for first_reply in comment.replies:
                             if len(first_reply.replies) > 0:
-                                if player_mentioned in position_players[self.teams[0]]:
+                                if player_mentioned in team_one_batter_usernames:
                                     team_two_batting = False
-                                elif player_mentioned in position_players[self.teams[1]]:
+                                elif player_mentioned in team_two_batter_usernames:
                                     team_two_batting = True
                                 else:
                                     continue
@@ -118,15 +139,18 @@ class Post:
 
                                 if pitch_index == -1:
                                     continue
-                                # TODO: GET PITCHER CORRECTLY
                                 # Things we care about - pitch number, date, and pitcher (fetched above)
                                 pitch_number = int(pitch_reply[pitch_index + 6:end_of_pitch_line_index].strip())
                                 date = reply.created
 
                                 if team_two_batting:
-                                    pitch_data = {"number": pitch_number, "date": date, "pitcher": team_one_pitcher}
+                                    pitch_data = {"number": pitch_number, "date": date,
+                                                  "pitcher": self.users_to_pitchers[self.team_name_one][
+                                                      team_one_pitcher]}
                                 else:
-                                    pitch_data = {"number": pitch_number, "date": date, "pitcher": team_two_pitcher}
+                                    pitch_data = {"number": pitch_number, "date": date,
+                                                  "pitcher": self.users_to_pitchers[self.team_name_two][
+                                                      team_two_pitcher]}
 
                                 pitches.append(pitch_data)
                 # Else: Do nothing
@@ -134,51 +158,42 @@ class Post:
         else:
             return []
 
-    # Fetches both team names in a game, and returns them in a 2-element list.
-    def __fetch_teams__(self):
+    # Fetches both team names in a game, and assigns them to class-level variables
+    def __assign_teams__(self):
         text = self.post.selftext
-        box_index = text.find("BOX")
-        if box_index == -1:
-            box_index = text.find("Box")
-        hashtag_index = text.find("#", box_index) + 2
-        ending_pipe_index = text.find("|", hashtag_index)
-        team_name_one = text[hashtag_index : ending_pipe_index]
+        teams = {}
 
-        hashtag_index = text.find("#", ending_pipe_index) + 2
-        ending_pipe_index = text.find("|", hashtag_index)
-        team_name_two = text[hashtag_index : ending_pipe_index]
+        smallest_index = 100000
+        for abbreviation in TeamUtil.get_team_abbreviation_list():
+            index = text.find(abbreviation)
+            if index != -1:
+                teams[abbreviation] = index
+                if index < smallest_index:
+                    smallest_index = index
 
-        return [team_name_one, team_name_two]
+        if len(teams) != 2:
+            raise ValueError(text, teams)
+        else:
+            for team in teams:
+                if teams[team] == smallest_index:
+                    self.team_name_one = team
+                else:
+                    self.team_name_two = team
 
-    def __get_player_from_comment__(self, comment):
+    @staticmethod
+    def __get_player_from_comment__(comment):
         comment_text = comment.body
         player_open_index = comment_text.find("[")
         player_close_index = comment_text.find("]", player_open_index)
-        return comment_text[player_open_index + 1: player_close_index]
+
+        username_open_index = comment_text.find("(", player_close_index)
+        username_close_index = comment_text.find(")", username_open_index)
+        return comment_text[username_open_index + 1: username_close_index]
 
     # Finds the index of the line containing the pitch number
-    def __find_pitch_text__(self, comment_text):
+    @staticmethod
+    def __find_pitch_text__(comment_text):
         index = comment_text.find("Pitch:")
         if index == -1:
             index = comment_text.find("pitch:")
         return index
-
-    '''
-    My god we need a more precise way to list who's batting.  Anyway, this does its best to figure out which person is
-    batting.
-    
-    The proper way to do this is via Reddit Username.  Make this work - it's the correct way to figure this out since
-    the links are alays the same.
-    '''
-    def __get_full_batter_name_from_toplevel_post(self, input_name, position_players):
-        # TODO: This needs to be a function
-        player_mentioned = input_name.split(" ")[-2:]
-        if len(player_mentioned) == 1:
-            player_mentioned = player_mentioned[0]
-        else:
-            player_mentioned = player_mentioned[0] + " " + player_mentioned[1]
-
-        #
-
-        return player_mentioned
-
