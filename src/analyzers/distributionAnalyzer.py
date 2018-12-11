@@ -1,7 +1,7 @@
 import pandas as pd
 from src.displayers import standardOutWriter
 
-numbers = [1, 1001]
+numbers = [-1000, 1001]
 
 # Uses PANDAS to group numbers by a given range
 def groupByRange(data, range=100):
@@ -28,4 +28,4 @@ data = [1, 101, 201, 103, 600]
 def order_and_group_by_delta(data):
     return None
 
-standardOutWriter.writeToStandardOut(groupByRange(data, 50))
+# standardOutWriter.writeToStandardOut(groupByRange(data, 50))
