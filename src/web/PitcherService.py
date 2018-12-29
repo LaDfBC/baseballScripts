@@ -1,9 +1,9 @@
 from flask import Flask
 # from flask_jsonpify import jsonify
 # from issueUtil import prettify
-from src.analyzers import distributionAnalyzer, pitcherAnalyzer
+from src.analyzers import distributionAnalyzer, pitchFetcher
 
 
 def pitchValuesByPitcher(pitcher_name, range_size=50):
-    pitches, deltas = pitcherAnalyzer.analyzePitcher("/home/george/Documents/mlnReports/mln_master_log_combined.csv", pitcher_name)
+    pitches, deltas = pitchFetcher.fetchPitchesByPitcherAndLocalFile("/home/george/Documents/mlnReports/mln_master_log_combined.csv", pitcher_name)
     return distributionAnalyzer.groupValuesByRange(pitches, range_size)
