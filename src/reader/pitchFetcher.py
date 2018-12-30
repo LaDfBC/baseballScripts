@@ -1,6 +1,6 @@
 from src.analyzers.distributionAnalyzer import groupValuesByRange
-from src.analyzers.googleSheetsUtil import get_spreadsheet_service
-from src.spreadsheet.row_organizer import PITCHER, PITCH_VALUE, GAME_NUMBER, get_row_as_dict
+from src.reader.googleSheetsUtil import get_spreadsheet_service
+from src.spreadsheet.row_organizer import PITCHER, PITCH_VALUE, get_row_as_dict
 
 '''
 Uses a filename on the local machine and a pitcher name to analyze to fetch all of pitches thrown by the named person
@@ -47,14 +47,11 @@ def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, pitcher_name):
     deltas = []
     pitcher_name = pitcher_name.lower()
     previous_pitch = None
-    # for sheet in sheets:
-    # print(sheet.get('properties').get('title'))
-    # if sheet.get('properties').get('title') == 'Tables':
-    #     continue
+
     result = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range="All PA's").execute()
     values = result.get('values')
-
     row_number = 1
+
     for row in values:
         if len(row) >= 19 and row_number >= 2:
             converted_row = get_row_as_dict(row, mlr=True)

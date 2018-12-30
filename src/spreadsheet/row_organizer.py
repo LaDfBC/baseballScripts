@@ -26,8 +26,11 @@ OFF_TEAM = 'offense'
 DEF_TEAM = 'defense'
 GAME_NUMBER = 'game_number'
 
-def get_row_as_dict(row, mlr=False):
-    split_row = row.split(',')
+def get_row_as_dict(row, mlr=False, is_list=False):
+    if not is_list:
+        split_row = row.split(',')
+    else:
+        split_row = row
 
     if mlr:
         return __get_mlr_row__(split_row)

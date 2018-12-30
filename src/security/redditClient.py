@@ -2,8 +2,9 @@ import requests
 import json
 import praw
 
-#If the timer runs out, just make another call to this function.
-# Gets A reddit instance the old-fashioned way.  Returns an access token
+'''If the timer runs out, just make another call to this function.
+    Gets A reddit instance the old-fashioned way.  Returns an access token
+'''
 def getOauthToken(reddit_username, reddit_password, app_username, app_password):
     #Fetches ALL scopes.  Any call can be made with this variant
     r = requests.post(
@@ -18,7 +19,9 @@ def getOauthToken(reddit_username, reddit_password, app_username, app_password):
     #Currently just returning the access token.
     return json.loads(r.content)['access_token']
 
-# Gets a Reddit instance via PRAW, which is a nice wrapper over Reddit!
+''' 
+Gets a Reddit instance via PRAW, which is a nice wrapper over Reddit
+'''
 def getPrawInstance(app_username, app_password):
     reddit = praw.Reddit(client_id = app_username,
                          client_secret = app_password,

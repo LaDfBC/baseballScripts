@@ -1,7 +1,7 @@
-from flask import Flask
 # from flask_jsonpify import jsonify
 # from issueUtil import prettify
-from src.analyzers import distributionAnalyzer, pitchFetcher
+from src.analyzers import distributionAnalyzer
+from src.reader import pitchFetcher
 
 
 def pitchValuesByPitcher(pitcher_name, range_size=50):
