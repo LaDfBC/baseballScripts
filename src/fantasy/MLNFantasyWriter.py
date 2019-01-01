@@ -1,7 +1,6 @@
 from src.fantasy.genericRowFetcher import fetchRowsFromSheetAfterRowNumber
 from src.reader.googleSheetsUtil import get_spreadsheet_service, get_gspread_service
 from src.spreadsheet.row_organizer import RESULT, RUNS_SCORED
-import gspread
 
 batter_cells = {
     "PA":"H",
@@ -36,7 +35,7 @@ pitcher_cells = {
 
 EXCLUDED_TITLES = ['Schedule', 'Draft Order', 'Draft Picks', 'Draft Class']
 
-def write_updates(pitcher_dict, batter_dict, spreadsheet_id):
+def write_updates(pitcher_dict, batter_dict, pitcher_steal_dict, player_steal_dict, spreadsheet_id):
     gc = get_gspread_service()
     overall_sheet = gc.open_by_key(spreadsheet_id)
     spreadsheets = get_spreadsheet_service(write_enabled=True)
@@ -51,7 +50,6 @@ def write_updates(pitcher_dict, batter_dict, spreadsheet_id):
             continue
         batters = value_list[0]
         row_number = 5
-        #TODO: STEALING, PITCHING (HITS, ER, BB) RUNS
         worksheet = overall_sheet.worksheet(sheet)
 
         # UPDATE BATTERS
@@ -73,6 +71,18 @@ def write_updates(pitcher_dict, batter_dict, spreadsheet_id):
                         rbi_cell = batter_cells["RBI"] + str(row_number)
                         __update_cell__(rbi_cell, worksheet, increment_by=current_at_bat[RUNS_SCORED])
 
+                # Updates Steals
+                steals = player_steal_dict[batter]
+                for current_steal in steals:
+                    if current_steal[RESULT] == 'CS':
+                        steal_cell = batter_cells['CS'] + str(row_number)
+                        __update_cell__(steal_cell, worksheet)
+                    elif current_steal[RESULT] == 'SB':
+                        steal_cell = batter_cells['SB'] + str(row_number)
+                        __update_cell__(steal_cell, worksheet)
+                    else:
+                        raise AttributeError("Unrecognized steal result: " + current_steal[RESULT])
+
             # Proceed to next batter
             row_number += 1
 
@@ -84,9 +94,9 @@ def write_updates(pitcher_dict, batter_dict, spreadsheet_id):
                 pitches_thrown = pitcher_dict[pitcher]
                 for current_pitch_thrown in pitches_thrown:
                     result = current_pitch_thrown[RESULT]
-                    if result in ['GO', 'PO', 'FO', 'K', 'SO', 'GIDP', 'DP']:
+                    if result in ['GO', 'PO', 'FO', 'K', 'SO', 'GIDP', 'DP', 'FC']:
                         # Updates IP <SINGLE OUTS>
-                        if result in ['GO', 'PO', 'FO', 'K', 'SO']:
+                        if result in ['GO', 'PO', 'FO', 'K', 'SO', 'FC']:
                             ip_cell = pitcher_cells['IP'] + str(row_number)
                             __update_cell__(ip_cell, worksheet, increment_by=0.1)
 
@@ -98,9 +108,17 @@ def write_updates(pitcher_dict, batter_dict, spreadsheet_id):
                             dp_cell = pitcher_cells['DP'] + str(row_number)
                             __update_cell__(dp_cell, worksheet)
 
-            row_number += 1
-        # TODO: Update
+                    # Updates All Hits
+                    if result in ['1B', '2B', '3B', 'HR', 'IF1B']:
+                        hit_cell = pitcher_cells['H'] + str(row_number)
+                        __update_cell__(hit_cell, worksheet)
 
+                    # Updates Walks
+                    if result in ['BB', 'IBB']:
+                        walk_cell = pitcher_cells['BB'] + str(row_number)
+                        __update_cell__(walk_cell, worksheet)
+
+            row_number += 1
     return
 
 def __update_cell__(cell_number, worksheet, increment_by=1.0):
@@ -126,5 +144,5 @@ def __get_all_sheet_names__(spreadsheet_id, spreadsheet_service):
     return titles
 
 if __name__ == '__main__':
-    pitcher_dict, player_dict = fetchRowsFromSheetAfterRowNumber(row_number=261)
-    write_updates(pitcher_dict, player_dict, "126gVroUUx-erQEnKwq9lUjUPkI2WK4DxeJr2twtRre4")
+    pitcher_dict, player_dict, pitcher_steal_dict, player_steal_dict = fetchRowsFromSheetAfterRowNumber(row_number=261)
+    write_updates(pitcher_dict, player_dict, pitcher_steal_dict, player_steal_dict, "126gVroUUx-erQEnKwq9lUjUPkI2WK4DxeJr2twtRre4")

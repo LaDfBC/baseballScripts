@@ -19,7 +19,7 @@ def fetchPitchesByPitcherAndLocalFile(file_name, pitcher_name):
     file = open(file_name, 'r')
 
     for original_row in file:
-        row = get_row_as_dict(original_row, False)
+        row = get_row_as_dict(original_row, mlr=False, is_list=False)
         # If not, just do nothing
         if row[PITCHER].lower() == pitcher_name:
             if row[PITCH_VALUE] != '':
@@ -48,13 +48,13 @@ def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, pitcher_name):
     pitcher_name = pitcher_name.lower()
     previous_pitch = None
 
-    result = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range="All PA's").execute()
+    result = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range="All PAs").execute()
     values = result.get('values')
     row_number = 1
 
     for row in values:
         if len(row) >= 19 and row_number >= 2:
-            converted_row = get_row_as_dict(row, mlr=True)
+            converted_row = get_row_as_dict(row, mlr=False, is_list=True)
             if converted_row[PITCHER].lower() == pitcher_name:
                 if converted_row[PITCH_VALUE] != '':
                     pitches.append(int(converted_row[PITCH_VALUE]))
@@ -69,7 +69,8 @@ def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, pitcher_name):
 
 if __name__ == '__main__':
     # MLN
-    pitches, deltas = fetchPitchesByPitcherAndLocalFile("/home/george/Documents/mlnReports/mln_master_log_combined.csv", 'Jordan Peppers')
+    # pitches, deltas = fetchPitchesByPitcherAndLocalFile("/home/george/Downloads/mlnmaster1.csv", 'Nate Lewis')
+    pitches, deltas = fetchPitchesByPitcherAndGoogleSheet('1vR8T-nZwJFYj8yKDwt0999FHzfZEEfFArZ2m1OsxPx8', 'Nate Lewis')
 
     #MLR
     # pitches,deltas = analyzePitcher("/home/george/Downloads/MLR3.csv", 'Caleb Miller')
