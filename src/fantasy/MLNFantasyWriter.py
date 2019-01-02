@@ -1,3 +1,7 @@
+import math
+import sys
+import time
+
 from src.fantasy.genericRowFetcher import fetchRowsFromSheetAfterRowNumber
 from src.reader.googleSheetsUtil import get_spreadsheet_service, get_gspread_service
 from src.spreadsheet.row_organizer import RESULT, RUNS_SCORED
@@ -22,20 +26,21 @@ batter_cells = {
 }
 
 pitcher_cells = {
-    "IP":"",
-    "R":"",
-    "K":"",
-    "BB":"",
-    "H":"",
-    "GIDP":"",
-    "IDP":"",
-    "DP":"",
-    "CGSO":""
+    "IP":"H",
+    'H': "I",
+    "K": "J",
+    "ER":"K",
+    "BB":"L",
+    "SO":"M",
+    "GIDP":"Q",
+    "IDP":"Q",
+    "DP":"Q",
+    "CGSO":"R"
 }
 
 EXCLUDED_TITLES = ['Schedule', 'Draft Order', 'Draft Picks', 'Draft Class']
 
-def write_updates(pitcher_dict, batter_dict, pitcher_steal_dict, player_steal_dict, spreadsheet_id):
+def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
     gc = get_gspread_service()
     overall_sheet = gc.open_by_key(spreadsheet_id)
     spreadsheets = get_spreadsheet_service(write_enabled=True)
@@ -67,9 +72,9 @@ def write_updates(pitcher_dict, batter_dict, pitcher_steal_dict, player_steal_di
                         __update_cell__(result_cell, worksheet)
 
                     # Updates RBI
-                    if current_at_bat[RUNS_SCORED] != 0:
+                    if current_at_bat[RUNS_SCORED] != 0 and current_at_bat[RUNS_SCORED] != '':
                         rbi_cell = batter_cells["RBI"] + str(row_number)
-                        __update_cell__(rbi_cell, worksheet, increment_by=current_at_bat[RUNS_SCORED])
+                        __update_cell__(rbi_cell, worksheet, increment_by=float(current_at_bat[RUNS_SCORED]))
 
                 # Updates Steals
                 steals = player_steal_dict[batter]
@@ -88,7 +93,8 @@ def write_updates(pitcher_dict, batter_dict, pitcher_steal_dict, player_steal_di
 
         # PITCHER UPDATES
         row_number = 18
-        pitchers = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B18:B20', majorDimension="COLUMNS").execute()['values']
+        pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B18:B20', majorDimension="COLUMNS").execute()['values']
+        pitchers = pitcher_list[0]
         for pitcher in pitchers:
             if pitcher != '':
                 pitches_thrown = pitcher_dict[pitcher]
@@ -99,6 +105,10 @@ def write_updates(pitcher_dict, batter_dict, pitcher_steal_dict, player_steal_di
                         if result in ['GO', 'PO', 'FO', 'K', 'SO', 'FC']:
                             ip_cell = pitcher_cells['IP'] + str(row_number)
                             __update_cell__(ip_cell, worksheet, increment_by=0.1)
+
+                            if result in ['K', 'SO']:
+                                strikeout_cell = pitcher_cells['K'] + str(row_number)
+                                __update_cell__(strikeout_cell, worksheet)
 
                         # Updates IP <DOUBLE OUTS> and Double Plays
                         if result in ['GIDP', 'DP']:
@@ -118,6 +128,11 @@ def write_updates(pitcher_dict, batter_dict, pitcher_steal_dict, player_steal_di
                         walk_cell = pitcher_cells['BB'] + str(row_number)
                         __update_cell__(walk_cell, worksheet)
 
+                    # Updates Earned Runs (ER)
+                    if current_pitch_thrown[RUNS_SCORED] != '' and current_pitch_thrown is not None:
+                        er_cell = pitcher_cells['ER'] + str(row_number)
+                        __update_cell__(er_cell, worksheet, increment_by=int(current_pitch_thrown[RUNS_SCORED]))
+
             row_number += 1
     return
 
@@ -126,7 +141,10 @@ def __update_cell__(cell_number, worksheet, increment_by=1.0):
 
     if current_pa == '':
         current_pa = 0
-    worksheet.update_acell(cell_number, float(current_pa) + increment_by)
+
+    if increment_by < 1 and (0.3 - (math.modf(float(current_pa))[0] + float(increment_by))) < 0.000001:
+        increment_by += 0.7
+    worksheet.update_acell(cell_number, str(float(current_pa) + increment_by))
 
 '''
 Fetches all sheet names on the given spreadsheet.  Ignores non-player ones as defined by the globals in this file.
@@ -144,5 +162,10 @@ def __get_all_sheet_names__(spreadsheet_id, spreadsheet_service):
     return titles
 
 if __name__ == '__main__':
-    pitcher_dict, player_dict, pitcher_steal_dict, player_steal_dict = fetchRowsFromSheetAfterRowNumber(row_number=261)
-    write_updates(pitcher_dict, player_dict, pitcher_steal_dict, player_steal_dict, "126gVroUUx-erQEnKwq9lUjUPkI2WK4DxeJr2twtRre4")
+    row_in = 366
+    if len(sys.argv) == 2:
+        row_in = sys.argv[1]
+    while 1:
+        pitcher_dict, player_dict, player_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
+        write_updates(pitcher_dict, player_dict, player_steal_dict, "126gVroUUx-erQEnKwq9lUjUPkI2WK4DxeJr2twtRre4")
+        time.sleep(5)

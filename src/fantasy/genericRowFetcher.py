@@ -12,6 +12,7 @@ ENORMOUS_SIZE = "1000000"
 Fetches ALL rows from the given spreadsheet id AFTER the given row number, defaulting to all rows.
 '''
 def fetchRowsFromSheetAfterRowNumber(spreadsheet_id=GM_SPREADSHEET_ID, row_number=0):
+    row_number = int(row_number)
     spreadsheets = get_spreadsheet_service()
 
     # TODO: Loop over this call and make it again if more than 30 rows are fetched!
@@ -21,7 +22,6 @@ def fetchRowsFromSheetAfterRowNumber(spreadsheet_id=GM_SPREADSHEET_ID, row_numbe
     player_to_outcome_dict = defaultdict(list)
     player_to_steal_dict = defaultdict(list)
     pitcher_to_outcome_dict = defaultdict(list)
-    pitcher_to_steal_dict = defaultdict(list)
     for value in values:
         mapped_row = get_row_as_dict(value, is_list=True)
 
@@ -35,6 +35,5 @@ def fetchRowsFromSheetAfterRowNumber(spreadsheet_id=GM_SPREADSHEET_ID, row_numbe
 
         if mapped_row[PLAY_TYPE].lower() == 'steal':
             player_to_steal_dict[mapped_row[RUNNER]].append(mapped_row)
-            pitcher_to_steal_dict[mapped_row[PITCHER]].append(mapped_row)
 
-    return pitcher_to_outcome_dict, player_to_outcome_dict, pitcher_to_steal_dict, player_to_steal_dict
+    return pitcher_to_outcome_dict, player_to_outcome_dict, player_to_steal_dict, row_number + len(values)

@@ -70,7 +70,7 @@ def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, pitcher_name):
 if __name__ == '__main__':
     # MLN
     # pitches, deltas = fetchPitchesByPitcherAndLocalFile("/home/george/Downloads/mlnmaster1.csv", 'Nate Lewis')
-    pitches, deltas = fetchPitchesByPitcherAndGoogleSheet('1vR8T-nZwJFYj8yKDwt0999FHzfZEEfFArZ2m1OsxPx8', 'Nate Lewis')
+    pitches, deltas = fetchPitchesByPitcherAndGoogleSheet('1vR8T-nZwJFYj8yKDwt0999FHzfZEEfFArZ2m1OsxPx8', '')
 
     #MLR
     # pitches,deltas = analyzePitcher("/home/george/Downloads/MLR3.csv", 'Caleb Miller')
