@@ -2,6 +2,8 @@ import math
 import sys
 import time
 
+from gspread.exceptions import APIError
+
 from src.fantasy.genericRowFetcher import fetchRowsFromSheetAfterRowNumber
 from src.reader.googleSheetsUtil import get_spreadsheet_service, get_gspread_service
 from src.spreadsheet.row_organizer import RESULT, RUNS_SCORED
@@ -71,10 +73,20 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
                         result_cell = batter_cells[current_at_bat[RESULT]] + str(row_number)
                         __update_cell__(result_cell, worksheet)
 
+                        # Updates the "Hits" column
+                        if current_at_bat[RESULT] in ['1B', '2B', '3B', 'HR', 'IF1B']:
+                            hit_cell = batter_cells['H'] + str(row_number)
+                            __update_cell__(hit_cell, worksheet)
+
                     # Updates RBI
                     if current_at_bat[RUNS_SCORED] != 0 and current_at_bat[RUNS_SCORED] != '':
                         rbi_cell = batter_cells["RBI"] + str(row_number)
                         __update_cell__(rbi_cell, worksheet, increment_by=float(current_at_bat[RUNS_SCORED]))
+
+                    # Updates AB
+                    if current_at_bat[RESULT] not in ['BB', 'IBB']:
+                        ab_cell = batter_cells['AB'] + str(row_number)
+                        __update_cell__(ab_cell, worksheet)
 
                 # Updates Steals
                 steals = player_steal_dict[batter]
@@ -137,14 +149,23 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
     return
 
 def __update_cell__(cell_number, worksheet, increment_by=1.0):
-    current_pa = worksheet.acell(cell_number).value
+    retry_limit = 3
+    while retry_limit > 0:
+        try:
+            current_pa = worksheet.acell(cell_number).value
 
-    if current_pa == '':
-        current_pa = 0
+            if current_pa == '':
+                current_pa = 0
 
-    if increment_by < 1 and (0.3 - (math.modf(float(current_pa))[0] + float(increment_by))) < 0.000001:
-        increment_by += 0.7
-    worksheet.update_acell(cell_number, str(float(current_pa) + increment_by))
+            if increment_by < 0.9 and (0.3 - (math.modf(float(current_pa))[0] + float(increment_by))) < 0.000001:
+                increment_by += 0.7
+            worksheet.update_acell(cell_number, str(float(current_pa) + increment_by))
+            return
+        except APIError:
+            print("Exceeded read count....sleeping and retrying!")
+            retry_limit -= 1
+            time.sleep(60)
+
 
 '''
 Fetches all sheet names on the given spreadsheet.  Ignores non-player ones as defined by the globals in this file.
@@ -163,9 +184,11 @@ def __get_all_sheet_names__(spreadsheet_id, spreadsheet_service):
 
 if __name__ == '__main__':
     row_in = 366
+    spreadsheet_in = '1XnREuK1ZyCJgdRSe9eBFMkAVslVqyWS7ZHF39qvrznQ'
     if len(sys.argv) == 2:
         row_in = sys.argv[1]
-    while 1:
-        pitcher_dict, player_dict, player_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
-        write_updates(pitcher_dict, player_dict, player_steal_dict, "126gVroUUx-erQEnKwq9lUjUPkI2WK4DxeJr2twtRre4")
-        time.sleep(5)
+        # spreadsheet_in = sys.argv[2]
+    # while 1:
+    pitcher_dict, player_dict, player_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
+    write_updates(pitcher_dict, player_dict, player_steal_dict, spreadsheet_in)
+        # time.sleep(5)

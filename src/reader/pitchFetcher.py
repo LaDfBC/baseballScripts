@@ -1,4 +1,4 @@
-from src.analyzers.distributionAnalyzer import groupValuesByRange
+from src.analyzers.distributionAnalyzer import groupValuesByRange, analyzeStreak
 from src.reader.googleSheetsUtil import get_spreadsheet_service
 from src.spreadsheet.row_organizer import PITCHER, PITCH_VALUE, get_row_as_dict
 
@@ -9,7 +9,7 @@ between the values of each pitch thrown by that person.
 
 These lists are commonly fed into the distributation analyzer stuff to produce reports about the pitches
 '''
-def fetchPitchesByPitcherAndLocalFile(file_name, pitcher_name):
+def fetchPitchesByPitcherAndLocalFile(file_name, pitcher_name, mlr = False):
     pitches = []
     deltas = []
 
@@ -19,9 +19,9 @@ def fetchPitchesByPitcherAndLocalFile(file_name, pitcher_name):
     file = open(file_name, 'r')
 
     for original_row in file:
-        row = get_row_as_dict(original_row, mlr=False, is_list=False)
+        row = get_row_as_dict(original_row, mlr, is_list=False)
         # If not, just do nothing
-        if row[PITCHER].lower() == pitcher_name:
+        if PITCHER in row.keys() and row[PITCHER].lower() == pitcher_name:
             if row[PITCH_VALUE] != '':
                 pitches.append(int(row[PITCH_VALUE]))
 
@@ -40,7 +40,7 @@ between the values of each pitch thrown by that person.
 
 These lists are commonly fed into the distributation analyzer stuff to produce reports about the pitches
 '''
-def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, pitcher_name):
+def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, pitcher_name, mlr=False):
     spreadsheets = get_spreadsheet_service()
 
     pitches = []
@@ -54,7 +54,7 @@ def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, pitcher_name):
 
     for row in values:
         if len(row) >= 19 and row_number >= 2:
-            converted_row = get_row_as_dict(row, mlr=False, is_list=True)
+            converted_row = get_row_as_dict(row, mlr, is_list=True)
             if converted_row[PITCHER].lower() == pitcher_name:
                 if converted_row[PITCH_VALUE] != '':
                     pitches.append(int(converted_row[PITCH_VALUE]))
@@ -69,12 +69,16 @@ def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, pitcher_name):
 
 if __name__ == '__main__':
     # MLN
-    # pitches, deltas = fetchPitchesByPitcherAndLocalFile("/home/george/Downloads/mlnmaster1.csv", 'Nate Lewis')
-    pitches, deltas = fetchPitchesByPitcherAndGoogleSheet('1vR8T-nZwJFYj8yKDwt0999FHzfZEEfFArZ2m1OsxPx8', '')
+    pitches, deltas = fetchPitchesByPitcherAndLocalFile("/home/george/Downloads/mlnmaster1.csv", 'Thomas Nova')
+    pitches_s2, deltas_s2 = fetchPitchesByPitcherAndGoogleSheet('1vR8T-nZwJFYj8yKDwt0999FHzfZEEfFArZ2m1OsxPx8', 'Thomas Nova')
+
+    pitches = pitches + pitches_s2
+    deltas = deltas + deltas_s2
 
     #MLR
-    # pitches,deltas = analyzePitcher("/home/george/Downloads/MLR3.csv", 'Caleb Miller')
+    # pitches,deltas = fetchPitchesByPitcherAndGoogleSheet("2PACX-1vTxYUfunWgHW9Zcm2vg4VcCI_oEv9_PQ_3sOTXFyJ8KZc3dpg7P-OReyNFC9_0E5G_KXQq5vAmQYhCC", 'Thomas Nova', mlr=True)
     #
     #
-    result = groupValuesByRange(deltas,range_size=100, numbers=[-999,1001])
+    # result = groupValuesByRange(deltas,range_size=100, numbers=[-999,1001])
+    result = analyzeStreak(deltas, range_size=100, numbers=[-999,1001])
     print(result)
