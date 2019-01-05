@@ -40,7 +40,7 @@ pitcher_cells = {
     "CGSO":"R"
 }
 
-EXCLUDED_TITLES = ['Schedule', 'Draft Order', 'Draft Picks', 'Draft Class']
+EXCLUDED_TITLES = ['Schedule', 'Draft Order', 'Draft Picks', 'Draft Class', 'WK1 H2H Matchups']
 
 def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
     gc = get_gspread_service()
@@ -105,7 +105,10 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
 
         # PITCHER UPDATES
         row_number = 18
-        pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B18:B20', majorDimension="COLUMNS").execute()['values']
+        try:
+            pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B18:B20', majorDimension="COLUMNS").execute()['values']
+        except:
+            continue
         pitchers = pitcher_list[0]
         for pitcher in pitchers:
             if pitcher != '':
@@ -183,11 +186,11 @@ def __get_all_sheet_names__(spreadsheet_id, spreadsheet_service):
     return titles
 
 if __name__ == '__main__':
-    row_in = 366
+    row_in = 707
     spreadsheet_in = '1XnREuK1ZyCJgdRSe9eBFMkAVslVqyWS7ZHF39qvrznQ'
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 3:
         row_in = sys.argv[1]
-        # spreadsheet_in = sys.argv[2]
+        spreadsheet_in = sys.argv[2]
     # while 1:
     pitcher_dict, player_dict, player_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
     write_updates(pitcher_dict, player_dict, player_steal_dict, spreadsheet_in)
