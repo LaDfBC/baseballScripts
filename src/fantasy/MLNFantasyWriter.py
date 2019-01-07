@@ -48,6 +48,7 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
     overall_sheet = gc.open_by_key(spreadsheet_id)
     spreadsheets = get_spreadsheet_service(write_enabled=True)
 
+    sheet_names = None
     retry_limit = 3
     while retry_limit > 0:
         try:
@@ -55,14 +56,17 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
         except:
             print("Failed getting sheet names! Retrying...")
             retry_limit -= 1
-            time.sleep(60)
+            time.sleep(90)
+
+    if sheet_names is None:
+        return
     for sheet in sheet_names:
         # Batters
         try:
             value_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B5:B14', majorDimension="COLUMNS").execute()['values']
         except HttpError:
             print("Failed fetching")
-            time.sleep(60)
+            time.sleep(90)
             value_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B5:B14', majorDimension="COLUMNS").execute()['values']
         except:
             print("Empty Sheet! The sheet that exploded was " + sheet)
@@ -121,7 +125,7 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
             pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B18:B20', majorDimension="COLUMNS").execute()['values']
         except HttpError:
             print("Failed during pitch fetching... Retrying!")
-            time.sleep(60)
+            time.sleep(90)
             pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B18:B20', majorDimension="COLUMNS").execute()['values']
         except:
             continue
@@ -211,7 +215,9 @@ if __name__ == '__main__':
     spreadsheet_list = spreadsheet_in.split(',')
     while 1:
         pitcher_dict, player_dict, player_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
-        for spreadsheet_id in spreadsheet_list:
-            print("Updating " + spreadsheet_id)
-            write_updates(pitcher_dict, player_dict, player_steal_dict, spreadsheet_id)
-        time.sleep(60)
+        # Do nothing if dicts are empty
+        if not (len(pitcher_dict) == 0 and len(player_dict) == 0 and len(player_steal_dict) == 0):
+            for spreadsheet_id in spreadsheet_list:
+                print("Updating " + spreadsheet_id)
+                write_updates(pitcher_dict, player_dict, player_steal_dict, spreadsheet_id)
+        time.sleep(90)
