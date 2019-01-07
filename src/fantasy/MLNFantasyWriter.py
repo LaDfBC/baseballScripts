@@ -62,17 +62,17 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
         return
     for sheet in sheet_names:
         # Batters
-        try:
-            value_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B5:B14', majorDimension="COLUMNS").execute()['values']
-        except HttpError:
-            print("Failed fetching")
-            time.sleep(90)
-            value_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B5:B14', majorDimension="COLUMNS").execute()['values']
-        except:
-            print("Empty Sheet! The sheet that exploded was " + sheet)
-            continue
-        batters = value_list[0]
-        row_number = 5
+        # try:
+        #     value_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B5:B14', majorDimension="COLUMNS").execute()['values']
+        # except HttpError:
+        #     print("Failed fetching")
+        #     time.sleep(90)
+        #     value_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B5:B14', majorDimension="COLUMNS").execute()['values']
+        # except:
+        #     print("Empty Sheet! The sheet that exploded was " + sheet)
+        #     continue
+        # batters = value_list[0]
+        # row_number = 5
         worksheet = overall_sheet.worksheet(sheet)
 
         # UPDATE BATTERS
@@ -122,53 +122,56 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
         # PITCHER UPDATES
         row_number = 18
         try:
-            pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B18:B20', majorDimension="COLUMNS").execute()['values']
+            pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B21:B21', majorDimension="COLUMNS").execute()['values']
         except HttpError:
             print("Failed during pitch fetching... Retrying!")
             time.sleep(90)
-            pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B18:B20', majorDimension="COLUMNS").execute()['values']
+            pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B21:B21', majorDimension="COLUMNS").execute()['values']
         except:
             continue
         pitchers = pitcher_list[0]
-        for pitcher in pitchers:
-            if pitcher != '':
-                pitches_thrown = pitcher_dict[pitcher]
-                for current_pitch_thrown in pitches_thrown:
-                    result = current_pitch_thrown[RESULT]
-                    if result in ['GO', 'PO', 'FO', 'K', 'SO', 'GIDP', 'DP', 'FC']:
-                        # Updates IP <SINGLE OUTS>
-                        if result in ['GO', 'PO', 'FO', 'K', 'SO', 'FC']:
-                            ip_cell = pitcher_cells['IP'] + str(row_number)
-                            __update_cell__(ip_cell, worksheet, increment_by=0.1)
+        try:
+            for pitcher in pitchers:
+                if pitcher != '':
+                    pitches_thrown = pitcher_dict[pitcher]
+                    for current_pitch_thrown in pitches_thrown:
+                        result = current_pitch_thrown[RESULT]
+                        if result in ['GO', 'PO', 'FO', 'K', 'SO', 'GIDP', 'DP', 'FC']:
+                            # Updates IP <SINGLE OUTS>
+                            if result in ['GO', 'PO', 'FO', 'K', 'SO', 'FC']:
+                                ip_cell = pitcher_cells['IP'] + str(row_number)
+                                __update_cell__(ip_cell, worksheet, increment_by=0.1)
 
-                            if result in ['K', 'SO']:
-                                strikeout_cell = pitcher_cells['K'] + str(row_number)
-                                __update_cell__(strikeout_cell, worksheet)
+                                if result in ['K', 'SO']:
+                                    strikeout_cell = pitcher_cells['K'] + str(row_number)
+                                    __update_cell__(strikeout_cell, worksheet)
 
-                        # Updates IP <DOUBLE OUTS> and Double Plays
-                        if result in ['GIDP', 'DP']:
-                            ip_cell = pitcher_cells['IP'] + str(row_number)
-                            __update_cell__(ip_cell, worksheet, increment_by=0.2)
+                            # Updates IP <DOUBLE OUTS> and Double Plays
+                            if result in ['GIDP', 'DP']:
+                                ip_cell = pitcher_cells['IP'] + str(row_number)
+                                __update_cell__(ip_cell, worksheet, increment_by=0.2)
 
-                            dp_cell = pitcher_cells['DP'] + str(row_number)
-                            __update_cell__(dp_cell, worksheet)
+                                dp_cell = pitcher_cells['DP'] + str(row_number)
+                                __update_cell__(dp_cell, worksheet)
 
-                    # Updates All Hits
-                    if result in ['1B', '2B', '3B', 'HR', 'IF1B']:
-                        hit_cell = pitcher_cells['H'] + str(row_number)
-                        __update_cell__(hit_cell, worksheet)
+                        # Updates All Hits
+                        if result in ['1B', '2B', '3B', 'HR', 'IF1B']:
+                            hit_cell = pitcher_cells['H'] + str(row_number)
+                            __update_cell__(hit_cell, worksheet)
 
-                    # Updates Walks
-                    if result in ['BB', 'IBB']:
-                        walk_cell = pitcher_cells['BB'] + str(row_number)
-                        __update_cell__(walk_cell, worksheet)
+                        # Updates Walks
+                        if result in ['BB', 'IBB']:
+                            walk_cell = pitcher_cells['BB'] + str(row_number)
+                            __update_cell__(walk_cell, worksheet)
 
-                    # Updates Earned Runs (ER)
-                    if current_pitch_thrown[RUNS_SCORED] != '' and current_pitch_thrown is not None:
-                        er_cell = pitcher_cells['ER'] + str(row_number)
-                        __update_cell__(er_cell, worksheet, increment_by=int(current_pitch_thrown[RUNS_SCORED]))
+                        # Updates Earned Runs (ER)
+                        if current_pitch_thrown[RUNS_SCORED] != '' and current_pitch_thrown is not None:
+                            er_cell = pitcher_cells['ER'] + str(row_number)
+                            __update_cell__(er_cell, worksheet, increment_by=int(current_pitch_thrown[RUNS_SCORED]))
 
-            row_number += 1
+                row_number += 1
+        except:
+            print("Failed to update sheet: " + sheet)
     return
 
 def __update_cell__(cell_number, worksheet, increment_by=1.0):
