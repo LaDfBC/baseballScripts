@@ -122,11 +122,11 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
         # PITCHER UPDATES
         row_number = 18
         try:
-            pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B21:B21', majorDimension="COLUMNS").execute()['values']
+            pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B19:B21', majorDimension="COLUMNS").execute()['values']
         except HttpError:
             print("Failed during pitch fetching... Retrying!")
             time.sleep(90)
-            pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B21:B21', majorDimension="COLUMNS").execute()['values']
+            pitcher_list = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range = sheet + '!B19:B21', majorDimension="COLUMNS").execute()['values']
         except:
             continue
         pitchers = pitcher_list[0]
