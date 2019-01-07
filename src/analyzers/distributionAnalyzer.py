@@ -27,10 +27,7 @@ def analyzeStreak(data, range_size = 100, numbers=None):
     data_cuts = pd.cut(df['data'], ranges)
 
     df_counted = pd.DataFrame({'last_cuts': last_cuts, 'normal_cuts':data_cuts})
-    df_counted.groupby(['normal_cuts', 'last_cuts']).size() # Better
-    finished_df = df_counted.pivot(index='normal_cuts', columns=ranges, values='last_cuts').plot(kind='bar')
-
-    return finished_df
+    return df_counted.groupby(['normal_cuts', 'last_cuts']).size() # Better
 
 # Does some preprocessing and then calls out to the range function, with the set list of deltas
 def fetchDeltasByRange(data, range_size=100):

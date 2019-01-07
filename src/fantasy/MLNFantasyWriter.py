@@ -186,12 +186,16 @@ def __get_all_sheet_names__(spreadsheet_id, spreadsheet_service):
     return titles
 
 if __name__ == '__main__':
-    row_in = 707
-    spreadsheet_in = '1XnREuK1ZyCJgdRSe9eBFMkAVslVqyWS7ZHF39qvrznQ'
+    row_in = 781
+    spreadsheet_in = '1XnREuK1ZyCJgdRSe9eBFMkAVslVqyWS7ZHF39qvrznQ,1yHHFBNSrVSM-sdrsHoSKxoWsaZvAWTldD3QJ7A6GldA,17XC6z21vnRT9R35N19eoC3JYTp-ATH3wqJNtuCaS8so'
     if len(sys.argv) == 3:
         row_in = sys.argv[1]
         spreadsheet_in = sys.argv[2]
-    # while 1:
-    pitcher_dict, player_dict, player_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
-    write_updates(pitcher_dict, player_dict, player_steal_dict, spreadsheet_in)
-        # time.sleep(5)
+
+    spreadsheet_list = spreadsheet_in.split(',')
+    while 1:
+        pitcher_dict, player_dict, player_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
+        for spreadsheet_id in spreadsheet_list:
+            print("Updating " + spreadsheet_id)
+            write_updates(pitcher_dict, player_dict, player_steal_dict, spreadsheet_id)
+        time.sleep(5)
