@@ -1,4 +1,5 @@
 import sys
+import time
 from collections import defaultdict
 
 from src.reader.googleSheetsUtil import get_spreadsheet_service
@@ -15,9 +16,16 @@ def fetchRowsFromSheetAfterRowNumber(spreadsheet_id=GM_SPREADSHEET_ID, row_numbe
     row_number = int(row_number)
     spreadsheets = get_spreadsheet_service()
 
-    # TODO: Loop over this call and make it again if more than 30 rows are fetched!
-    result = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range=str(row_number + 1) + ":" + ENORMOUS_SIZE).execute()
-    values = result.get('values')
+    retry_limit = 3
+    while retry_limit > 0:
+        try:
+            # TODO: Loop over this call and make it again if more than 30 rows are fetched!
+            result = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range=str(row_number + 1) + ":" + ENORMOUS_SIZE).execute()
+            values = result.get('values')
+        except:
+            print("Exceeded read count on dict mapping....sleeping and retrying!")
+            retry_limit -= 1
+            time.sleep(60)
 
     player_to_outcome_dict = defaultdict(list)
     player_to_steal_dict = defaultdict(list)
