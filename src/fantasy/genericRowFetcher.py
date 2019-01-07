@@ -22,6 +22,8 @@ def fetchRowsFromSheetAfterRowNumber(spreadsheet_id=GM_SPREADSHEET_ID, row_numbe
     player_to_outcome_dict = defaultdict(list)
     player_to_steal_dict = defaultdict(list)
     pitcher_to_outcome_dict = defaultdict(list)
+    if values == None:
+        return pitcher_to_outcome_dict, player_to_outcome_dict, player_to_steal_dict, row_number
     for value in values:
         mapped_row = get_row_as_dict(value, is_list=True)
 
