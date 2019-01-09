@@ -223,4 +223,4 @@ if __name__ == '__main__':
             for spreadsheet_id in spreadsheet_list:
                 print("Updating " + spreadsheet_id)
                 write_updates(pitcher_dict, player_dict, player_steal_dict, spreadsheet_id)
-        time.sleep(90)
+        time.sleep(300)
