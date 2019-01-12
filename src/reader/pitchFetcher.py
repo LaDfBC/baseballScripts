@@ -59,7 +59,7 @@ def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, player_name, batter = Fa
     player_name = player_name.lower()
     previous_pitch = None
 
-    result = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range="All PAs").execute()
+    result = spreadsheets.values().get(spreadsheetId=spreadsheet_id, range="All PA's").execute()
     values = result.get('values')
     row_number = 1
 
@@ -89,14 +89,14 @@ def fetchPitchesByPitcherAndGoogleSheet(spreadsheet_id, player_name, batter = Fa
 
 if __name__ == '__main__':
     # MLN
-    pitches, deltas = fetchPitchesByPitcherAndLocalFile("/home/george/Downloads/mlnmaster1.csv", 'Duke Nukem', batter = True)
-    # pitches_s2, deltas_s2 = fetchPitchesByPitcherAndGoogleSheet('1vR8T-nZwJFYj8yKDwt0999FHzfZEEfFArZ2m1OsxPx8', 'Boof Boog', batter = True)
-
+    # pitches, deltas = fetchPitchesByPitcherAndLocalFile("/home/george/Downloads/mlnmaster1.csv", 'Ricky Vaughn', batter = False)
+    # pitches_s2, deltas_s2 = fetchPitchesByPitcherAndGoogleSheet('1vR8T-nZwJFYj8yKDwt0999FHzfZEEfFArZ2m1OsxPx8', 'Ricky Vaughn', batter = False)
+    #
     # pitches = pitches + pitches_s2
     # deltas = deltas + deltas_s2
 
     #MLR
-    # pitches,deltas = fetchPitchesByPitcherAndGoogleSheet("2PACX-1vTxYUfunWgHW9Zcm2vg4VcCI_oEv9_PQ_3sOTXFyJ8KZc3dpg7P-OReyNFC9_0E5G_KXQq5vAmQYhCC", 'Thomas Nova', mlr=True)
+    pitches,deltas = fetchPitchesByPitcherAndGoogleSheet("1cLXbbffR0Ra1yHfFDI6fihkaXJA1rOrnrrocAXNzHKw", 'Jefferson Steelflex', mlr=True)
     #
     #
     result = groupValuesByRange(deltas,range_size=100, numbers=[-999,1001])

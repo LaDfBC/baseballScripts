@@ -19,6 +19,7 @@ def fetchRowsFromSheetAfterRowNumber(spreadsheet_id=GM_SPREADSHEET_ID, row_numbe
     player_to_outcome_dict = defaultdict(list)
     player_to_steal_dict = defaultdict(list)
     pitcher_to_outcome_dict = defaultdict(list)
+    pitcher_to_steal_dict = defaultdict(list)
 
     current_row = row_number
 
@@ -35,15 +36,16 @@ def fetchRowsFromSheetAfterRowNumber(spreadsheet_id=GM_SPREADSHEET_ID, row_numbe
                 mapped_row = get_row_as_dict(value, is_list=True)
 
                 # Add to Pitcher Map
-                if mapped_row[PITCHER] is not None:
+                if mapped_row[PITCHER] is not None and mapped_row[PLAY_TYPE].lower() != 'steal':
                     pitcher_to_outcome_dict[mapped_row[PITCHER]].append(mapped_row)
 
                 # Add to Batter Map
-                if mapped_row[BATTER] is not None:
+                if mapped_row[BATTER] is not None and mapped_row[PLAY_TYPE].lower() != 'steal':
                     player_to_outcome_dict[mapped_row[BATTER]].append(mapped_row)
 
                 if mapped_row[PLAY_TYPE].lower() == 'steal':
                     player_to_steal_dict[mapped_row[RUNNER]].append(mapped_row)
+                    pitcher_to_steal_dict[mapped_row[PITCHER]].append(mapped_row)
 
             current_row += 1
         except:
@@ -51,4 +53,4 @@ def fetchRowsFromSheetAfterRowNumber(spreadsheet_id=GM_SPREADSHEET_ID, row_numbe
             retry_limit -= 1
             time.sleep(100)
 
-    return pitcher_to_outcome_dict, player_to_outcome_dict, player_to_steal_dict, row_number + len(values)
+    return pitcher_to_outcome_dict, player_to_outcome_dict, player_to_steal_dict, pitcher_to_steal_dict, current_row

@@ -43,7 +43,7 @@ pitcher_cells = {
 
 EXCLUDED_TITLES = ['Schedule', 'Draft Order', 'Draft Picks', 'Draft Class', 'WK1 H2H Matchups']
 
-def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
+def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_dict, spreadsheet_id):
     gc = get_gspread_service()
     overall_sheet = gc.open_by_key(spreadsheet_id)
     spreadsheets = get_spreadsheet_service(write_enabled=True)
@@ -177,6 +177,13 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, spreadsheet_id):
                         er_cell = pitcher_cells['ER'] + str(row_number)
                         __update_cell__(er_cell, worksheet, increment_by=int(current_pitch_thrown[RUNS_SCORED]))
 
+                    # Updates Steals
+                    steals = pitcher_steal_dict[pitcher]
+                    for current_steal in steals:
+                        if current_steal[RESULT] == 'SB':
+                            ip_cell = pitcher_cells['IP'] + str(row_number)
+                            __update_cell__(ip_cell, worksheet, increment_by=0.1)
+
             row_number += 1
     return
 
@@ -223,10 +230,10 @@ if __name__ == '__main__':
 
     spreadsheet_list = spreadsheet_in.split(',')
     while 1:
-        pitcher_dict, player_dict, player_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
+        pitcher_dict, player_dict, player_steal_dict, pitcher_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
         # Do nothing if dicts are empty
         if not (len(pitcher_dict) == 0 and len(player_dict) == 0 and len(player_steal_dict) == 0):
             for spreadsheet_id in spreadsheet_list:
                 print("Updating " + spreadsheet_id)
-                write_updates(pitcher_dict, player_dict, player_steal_dict, spreadsheet_id)
+                write_updates(pitcher_dict, player_dict, player_steal_dict, pitcher_steal_dict, spreadsheet_id)
         time.sleep(300)
