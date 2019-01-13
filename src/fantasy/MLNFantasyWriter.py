@@ -191,13 +191,13 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
                         __update_cell__(er_cell, worksheet, increment_by=int(current_pitch_thrown[RUNS_SCORED]))
                         print("Updating ER...")
 
-                    # Updates Steals
-                    steals = pitcher_steal_dict[pitcher]
-                    for current_steal in steals:
-                        if current_steal[RESULT] == 'SB':
-                            ip_cell = pitcher_cells['IP'] + str(row_number)
-                            __update_cell__(ip_cell, worksheet, increment_by=0.1)
-                            print("Updating IP For SB...")
+                # Updates Steals
+                steals = pitcher_steal_dict[pitcher]
+                for current_steal in steals:
+                    if current_steal[RESULT] == 'CS':
+                        ip_cell = pitcher_cells['IP'] + str(row_number)
+                        __update_cell__(ip_cell, worksheet, increment_by=0.1)
+                        print("Updating IP For SB...")
 
             row_number += 1
             print("Current row number: " + str(row_number))
