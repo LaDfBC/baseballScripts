@@ -31,7 +31,7 @@ def fetchRowsFromSheetAfterRowNumber(spreadsheet_id=GM_SPREADSHEET_ID, row_numbe
             values = result.get('values')
 
             if values == None:
-                return pitcher_to_outcome_dict, player_to_outcome_dict, player_to_steal_dict, current_row
+                return pitcher_to_outcome_dict, player_to_outcome_dict, player_to_steal_dict, pitcher_to_steal_dict, current_row
             for value in values:
                 mapped_row = get_row_as_dict(value, is_list=True)
 
