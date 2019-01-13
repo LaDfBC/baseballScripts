@@ -148,6 +148,8 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
             if pitcher != '':
                 pitches_thrown = pitcher_dict[pitcher]
                 print("Handling pitcher: " + str(pitcher))
+                print("---PITCHES THROWN---")
+                print(pitches_thrown)
                 for current_pitch_thrown in pitches_thrown:
                     print("Current Pitch: " + str(current_pitch_thrown))
                     result = current_pitch_thrown[RESULT]
@@ -204,9 +206,11 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
     return
 
 def __update_cell__(cell_number, worksheet, increment_by=1.0):
+    initial_increment_by = increment_by
     retry_limit = 3
     while retry_limit > 0:
         try:
+            increment_by = initial_increment_by
             current_pa = worksheet.acell(cell_number).value
 
             if current_pa == '':
