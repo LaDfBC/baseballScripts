@@ -86,17 +86,20 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
 
         # UPDATE BATTERS
         for batter in batters:
+            print("Running " + batter)
             if batter != "":
                 at_bats = batter_dict[batter]
                 for current_at_bat in at_bats:
                     # Simply updates the number of plate appearances
                     pa_cell = batter_cells['PA'] + str(row_number)
                     __update_cell__(pa_cell, worksheet)
+                    print("Adding PA...")
 
                     # Updates the result row of the current AB
                     if current_at_bat[RESULT] in batter_cells:
                         result_cell = batter_cells[current_at_bat[RESULT]] + str(row_number)
                         __update_cell__(result_cell, worksheet)
+                        print("Adding " + current_at_bat[RESULT])
 
                         # Updates the "Hits" column
                         if current_at_bat[RESULT] in ['1B', '2B', '3B', 'HR', 'IF1B']:
@@ -107,11 +110,13 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
                     if current_at_bat[RUNS_SCORED] != 0 and current_at_bat[RUNS_SCORED] != '':
                         rbi_cell = batter_cells["RBI"] + str(row_number)
                         __update_cell__(rbi_cell, worksheet, increment_by=float(current_at_bat[RUNS_SCORED]))
+                        print("Adding RBI...")
 
                     # Updates AB
                     if current_at_bat[RESULT] not in ['BB', 'IBB']:
                         ab_cell = batter_cells['AB'] + str(row_number)
                         __update_cell__(ab_cell, worksheet)
+                        print("Adding BB...")
 
                 # Updates Steals
                 steals = player_steal_dict[batter]
@@ -142,17 +147,21 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
         for pitcher in pitchers:
             if pitcher != '':
                 pitches_thrown = pitcher_dict[pitcher]
+                print("Handling pitcher: " + pitcher)
                 for current_pitch_thrown in pitches_thrown:
+                    print("Current Pitch: " + current_pitch_thrown)
                     result = current_pitch_thrown[RESULT]
                     if result in ['GO', 'PO', 'FO', 'K', 'SO', 'GIDP', 'DP', 'FC']:
                         # Updates IP <SINGLE OUTS>
                         if result in ['GO', 'PO', 'FO', 'K', 'SO', 'FC']:
                             ip_cell = pitcher_cells['IP'] + str(row_number)
                             __update_cell__(ip_cell, worksheet, increment_by=0.1)
+                            print("Adding Result: " + result)
 
                             if result in ['K', 'SO']:
                                 strikeout_cell = pitcher_cells['K'] + str(row_number)
                                 __update_cell__(strikeout_cell, worksheet)
+                                print("Adding Strikeout")
 
                         # Updates IP <DOUBLE OUTS> and Double Plays
                         if result in ['GIDP', 'DP']:
@@ -161,21 +170,26 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
 
                             dp_cell = pitcher_cells['DP'] + str(row_number)
                             __update_cell__(dp_cell, worksheet)
+                            print("Adding stuff for Double Play...")
+
 
                     # Updates All Hits
                     if result in ['1B', '2B', '3B', 'HR', 'IF1B']:
                         hit_cell = pitcher_cells['H'] + str(row_number)
                         __update_cell__(hit_cell, worksheet)
+                        print("Adding hit: " + result)
 
                     # Updates Walks
                     if result in ['BB', 'IBB']:
                         walk_cell = pitcher_cells['BB'] + str(row_number)
                         __update_cell__(walk_cell, worksheet)
+                        print('Adding walk...')
 
                     # Updates Earned Runs (ER)
                     if current_pitch_thrown[RUNS_SCORED] != '' and current_pitch_thrown is not None:
                         er_cell = pitcher_cells['ER'] + str(row_number)
                         __update_cell__(er_cell, worksheet, increment_by=int(current_pitch_thrown[RUNS_SCORED]))
+                        print("Updating ER...")
 
                     # Updates Steals
                     steals = pitcher_steal_dict[pitcher]
@@ -183,8 +197,10 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
                         if current_steal[RESULT] == 'SB':
                             ip_cell = pitcher_cells['IP'] + str(row_number)
                             __update_cell__(ip_cell, worksheet, increment_by=0.1)
+                            print("Updating IP For SB...")
 
             row_number += 1
+            print("Current row number: " + row_number)
     return
 
 def __update_cell__(cell_number, worksheet, increment_by=1.0):
