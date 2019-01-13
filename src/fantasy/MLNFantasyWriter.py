@@ -86,7 +86,7 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
 
         # UPDATE BATTERS
         for batter in batters:
-            print("Running " + batter)
+            print("Running " + str(batter))
             if batter != "":
                 at_bats = batter_dict[batter]
                 for current_at_bat in at_bats:
@@ -99,7 +99,7 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
                     if current_at_bat[RESULT] in batter_cells:
                         result_cell = batter_cells[current_at_bat[RESULT]] + str(row_number)
                         __update_cell__(result_cell, worksheet)
-                        print("Adding " + current_at_bat[RESULT])
+                        print("Adding " + str(current_at_bat[RESULT]))
 
                         # Updates the "Hits" column
                         if current_at_bat[RESULT] in ['1B', '2B', '3B', 'HR', 'IF1B']:
@@ -147,16 +147,16 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
         for pitcher in pitchers:
             if pitcher != '':
                 pitches_thrown = pitcher_dict[pitcher]
-                print("Handling pitcher: " + pitcher)
+                print("Handling pitcher: " + str(pitcher))
                 for current_pitch_thrown in pitches_thrown:
-                    print("Current Pitch: " + current_pitch_thrown)
+                    print("Current Pitch: " + str(current_pitch_thrown))
                     result = current_pitch_thrown[RESULT]
                     if result in ['GO', 'PO', 'FO', 'K', 'SO', 'GIDP', 'DP', 'FC']:
                         # Updates IP <SINGLE OUTS>
                         if result in ['GO', 'PO', 'FO', 'K', 'SO', 'FC']:
                             ip_cell = pitcher_cells['IP'] + str(row_number)
                             __update_cell__(ip_cell, worksheet, increment_by=0.1)
-                            print("Adding Result: " + result)
+                            print("Adding Result: " + str(result))
 
                             if result in ['K', 'SO']:
                                 strikeout_cell = pitcher_cells['K'] + str(row_number)
@@ -177,7 +177,7 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
                     if result in ['1B', '2B', '3B', 'HR', 'IF1B']:
                         hit_cell = pitcher_cells['H'] + str(row_number)
                         __update_cell__(hit_cell, worksheet)
-                        print("Adding hit: " + result)
+                        print("Adding hit: " + str(result))
 
                     # Updates Walks
                     if result in ['BB', 'IBB']:
@@ -200,7 +200,7 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
                             print("Updating IP For SB...")
 
             row_number += 1
-            print("Current row number: " + row_number)
+            print("Current row number: " + str(row_number))
     return
 
 def __update_cell__(cell_number, worksheet, increment_by=1.0):
