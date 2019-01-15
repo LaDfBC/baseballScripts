@@ -5,9 +5,10 @@ import time
 from googleapiclient.errors import HttpError
 from gspread.exceptions import APIError
 
-from src.fantasy.genericRowFetcher import fetchRowsFromSheetAfterRowNumber
+from src.fantasy.genericRowFetcher import fetchRowsFromSheetAfterRowNumber, fetchGameResults, WINNING_PITCHER, \
+    SAVE_PITCHER, LOSING_PITCHER
 from src.reader.googleSheetsUtil import get_spreadsheet_service, get_gspread_service
-from src.spreadsheet.row_organizer import RESULT, RUNS_SCORED
+from src.spreadsheet.row_organizer import RESULT, RUNS_SCORED, RBI
 
 batter_cells = {
     "PA":"H",
@@ -35,6 +36,9 @@ pitcher_cells = {
     "ER":"K",
     "BB":"L",
     "SO":"M",
+    "W":"N",
+    "L":"O",
+    "SV":"P",
     "GIDP":"Q",
     "IDP":"Q",
     "DP":"Q",
@@ -43,7 +47,7 @@ pitcher_cells = {
 
 EXCLUDED_TITLES = ['Schedule', 'Draft Order', 'Draft Picks', 'Draft Class', 'WK1 H2H Matchups']
 
-def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_dict, spreadsheet_id):
+def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_dict, pitcher_game_dict, spreadsheet_id):
     gc = get_gspread_service()
     overall_sheet = gc.open_by_key(spreadsheet_id)
     spreadsheets = get_spreadsheet_service(write_enabled=True)
@@ -107,10 +111,10 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
                             __update_cell__(hit_cell, worksheet)
 
                     # Updates RBI
-                    if current_at_bat[RUNS_SCORED] != 0 and current_at_bat[RUNS_SCORED] != '':
+                    if current_at_bat[RBI] != 0 and current_at_bat[RBI] != '':
                         rbi_cell = batter_cells["RBI"] + str(row_number)
-                        __update_cell__(rbi_cell, worksheet, increment_by=float(current_at_bat[RUNS_SCORED]))
-                        print("Adding RBI...")
+                        __update_cell__(rbi_cell, worksheet, increment_by=float(current_at_bat[RBI]))
+                        print("Adding RBI<  ...")
 
                     # Updates AB
                     if current_at_bat[RESULT] not in ['BB', 'IBB']:
@@ -201,9 +205,36 @@ def write_updates(pitcher_dict, batter_dict, player_steal_dict, pitcher_steal_di
                         __update_cell__(ip_cell, worksheet, increment_by=0.1)
                         print("Updating IP For SB...")
 
+            if pitcher in pitcher_game_dict[WINNING_PITCHER]:
+                win_cell = pitcher_cells['W'] + str(row_number)
+                __add_to_game_cell__(win_cell, worksheet)
+            if pitcher in pitcher_game_dict[LOSING_PITCHER]:
+                lose_cell = pitcher_cells['L'] + str(row_number)
+                __add_to_game_cell__(lose_cell, worksheet)
+            if pitcher in pitcher_game_dict[SAVE_PITCHER]:
+                save_cell = pitcher_cells['SV'] + str(row_number)
+                __add_to_game_cell__(save_cell, worksheet)
+
             row_number += 1
             print("Current row number: " + str(row_number))
     return
+
+def __add_to_game_cell__(cell_number, worksheet):
+    retry_limit = 5
+    while retry_limit > 0:
+        try:
+            current_data = worksheet.acell(cell_number).value
+
+            if current_data == '1':
+                return
+            else:
+                worksheet.update_acell(cell_number, '1')
+
+            return
+        except APIError:
+            print("Exceeded write count for game data - retrying!")
+            retry_limit -= 1
+            time.sleep(105)
 
 def __update_cell__(cell_number, worksheet, increment_by=1.0):
     initial_increment_by = increment_by
@@ -244,16 +275,27 @@ def __get_all_sheet_names__(spreadsheet_id, spreadsheet_service):
 if __name__ == '__main__':
     row_in = 781
     spreadsheet_in = '1XnREuK1ZyCJgdRSe9eBFMkAVslVqyWS7ZHF39qvrznQ,1yHHFBNSrVSM-sdrsHoSKxoWsaZvAWTldD3QJ7A6GldA,17XC6z21vnRT9R35N19eoC3JYTp-ATH3wqJNtuCaS8so'
+    session_number = 3
     if len(sys.argv) == 3:
         row_in = sys.argv[1]
         spreadsheet_in = sys.argv[2]
+    elif len(sys.argv) == 4:
+        row_in = sys.argv[1]
+        spreadsheet_in = sys.argv[2]
+        session_number = sys.argv[3]
 
     spreadsheet_list = spreadsheet_in.split(',')
     while 1:
+        # Update stats from PAs
         pitcher_dict, player_dict, player_steal_dict, pitcher_steal_dict, row_in = fetchRowsFromSheetAfterRowNumber(row_number=row_in)
+        pitcher_game_results = fetchGameResults(session_number)
+
         # Do nothing if dicts are empty
         if not (len(pitcher_dict) == 0 and len(player_dict) == 0 and len(player_steal_dict) == 0):
             for spreadsheet_id in spreadsheet_list:
                 print("Updating " + spreadsheet_id)
-                write_updates(pitcher_dict, player_dict, player_steal_dict, pitcher_steal_dict, spreadsheet_id)
+                write_updates(pitcher_dict, player_dict, player_steal_dict, pitcher_steal_dict, pitcher_game_results, spreadsheet_id)
+
+        # Update stats Master Log
+        print(time.clock())
         time.sleep(300)
